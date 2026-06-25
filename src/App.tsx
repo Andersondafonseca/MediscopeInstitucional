@@ -44,6 +44,14 @@ import hospitalFilm05 from '../vid/5-scrub.mp4?url';
 import hospitalFilm06 from '../vid/06-scrub.mp4?url';
 import hospitalFilm07 from '../vid/7-scrub.mp4?url';
 import hospitalFilm08 from '../vid/8-scrub.mp4?url';
+import hospitalFilmMobile01 from '../vid/mobile/01-mobile.mp4?url';
+import hospitalFilmMobile02 from '../vid/mobile/02-mobile.mp4?url';
+import hospitalFilmMobile03 from '../vid/mobile/03-mobile.mp4?url';
+import hospitalFilmMobile04 from '../vid/mobile/04-mobile.mp4?url';
+import hospitalFilmMobile05 from '../vid/mobile/5-mobile.mp4?url';
+import hospitalFilmMobile06 from '../vid/mobile/06-mobile.mp4?url';
+import hospitalFilmMobile07 from '../vid/mobile/7-mobile.mp4?url';
+import hospitalFilmMobile08 from '../vid/mobile/8-mobile.mp4?url';
 import hospitalTwinLoop from '../vid/hosp-loop.mp4?url';
 import mediscopeLogoWhite from './assets/medislogo-white.png';
 import { scenes } from './experienceData';
@@ -61,34 +69,42 @@ const accentClasses = {
 const cinematicVideos = {
   arrivalToReception: {
     src: hospitalFilm01,
+    mobileSrc: hospitalFilmMobile01,
     label: 'Chegada para recepcao',
   },
   receptionToPatient: {
     src: hospitalFilm02,
+    mobileSrc: hospitalFilmMobile02,
     label: 'Recepcao para paciente',
   },
   patientToClinical: {
     src: hospitalFilm03,
+    mobileSrc: hospitalFilmMobile03,
     label: 'Paciente para consulta',
   },
   clinicalToRooms: {
     src: hospitalFilm04,
+    mobileSrc: hospitalFilmMobile04,
     label: 'Consulta para leitos',
   },
   roomsToEmergency: {
     src: hospitalFilm05,
+    mobileSrc: hospitalFilmMobile05,
     label: 'Leitos para emergencia',
   },
   emergencyToInventory: {
     src: hospitalFilm06,
+    mobileSrc: hospitalFilmMobile06,
     label: 'Emergencia para estoque',
   },
   inventoryToManagement: {
     src: hospitalFilm07,
+    mobileSrc: hospitalFilmMobile07,
     label: 'Estoque para gestao',
   },
   managementToInstitutional: {
     src: hospitalFilm08,
+    mobileSrc: hospitalFilmMobile08,
     label: 'Gestao para institucional',
   },
 } as const;
@@ -237,6 +253,7 @@ function App() {
   const [activeVideoId, setActiveVideoId] = useState<CinematicVideoId>('arrivalToReception');
   const activeVideoIdRef = useRef<CinematicVideoId>('arrivalToReception');
   const [navOpen, setNavOpen] = useState(false);
+  const useMobileVideo = useMobileVideoSource();
 
   useEffect(() => {
     const shell = shellRef.current;
@@ -451,38 +468,17 @@ function App() {
   };
 
   const scrollToScene = (index: number) => {
-    const firstScene = document.getElementById('arrival');
-    const patientTransition = document.getElementById('reception-patient-film');
-    const clinicalTransition = document.getElementById('patient-clinical-film');
-    const roomsTransition = document.getElementById('clinical-rooms-film');
-    const emergencyTransition = document.getElementById('rooms-emergency-film');
-    const inventoryTransition = document.getElementById('emergency-inventory-film');
-    const managementTransition = document.getElementById('inventory-management-film');
-    const institutionalTransition = document.getElementById('management-institutional-film');
     const target = document.getElementById(scenes[index].id);
 
-    if (index === 0 && firstScene) {
+    if (index === 0 && target) {
       activeVideoIdRef.current = 'arrivalToReception';
       setActiveVideoId('arrivalToReception');
-      animateScrollTo(firstScene.getBoundingClientRect().top + window.scrollY, 1600);
-    } else if (index === 1 && firstScene) {
-      animateScrollTo(firstScene.getBoundingClientRect().top + window.scrollY + 820, 1400);
-    } else if (index === 2 && patientTransition) {
-      animateScrollTo(patientTransition.getBoundingClientRect().top + window.scrollY + 1400, 1500);
-    } else if (index === 3 && clinicalTransition) {
-      animateScrollTo(clinicalTransition.getBoundingClientRect().top + window.scrollY + 1400, 1500);
-    } else if (index === 4 && roomsTransition) {
-      animateScrollTo(roomsTransition.getBoundingClientRect().top + window.scrollY + 1400, 1500);
-    } else if (index === 5 && emergencyTransition) {
-      animateScrollTo(emergencyTransition.getBoundingClientRect().top + window.scrollY + 1400, 1500);
-    } else if (index === 6 && target) {
-      animateScrollTo(target.getBoundingClientRect().top + window.scrollY, 1500);
-    } else if (index === 7 && managementTransition) {
-      animateScrollTo(managementTransition.getBoundingClientRect().top + window.scrollY + 1400, 1500);
-    } else if (index === 8 && institutionalTransition) {
-      animateScrollTo(institutionalTransition.getBoundingClientRect().top + window.scrollY + 1400, 1500);
     } else if (target) {
-      animateScrollTo(target.getBoundingClientRect().top + window.scrollY, 1000);
+      setActiveVideoId(sceneVideoMap[index] ?? 'managementToInstitutional');
+    }
+
+    if (target) {
+      animateScrollTo(target.getBoundingClientRect().top + window.scrollY, index === 0 ? 1600 : 1200);
     }
 
     setNavOpen(false);
@@ -490,7 +486,7 @@ function App() {
 
   return (
     <main ref={shellRef} className="relative min-h-screen overflow-x-hidden bg-obsidian text-white">
-      <CinematicVideo videoRefs={videoRefs} activeVideoId={activeVideoId} />
+      <CinematicVideo videoRefs={videoRefs} activeVideoId={activeVideoId} useMobileVideo={useMobileVideo} />
       <TopNavigation activeScene={currentScene} navOpen={navOpen} setNavOpen={setNavOpen} />
       <SideNavigation
         activeScene={activeScene}
@@ -517,32 +513,101 @@ function App() {
   );
 }
 
+function useMobileVideoSource() {
+  const [useMobileVideo, setUseMobileVideo] = useState(false);
+
+  useEffect(() => {
+    const mobileQuery = window.matchMedia('(max-width: 767px)');
+    const connection = (navigator as Navigator & {
+      connection?: {
+        saveData?: boolean;
+        effectiveType?: string;
+      };
+    }).connection;
+
+    const updatePreference = () => {
+      const constrainedConnection =
+        Boolean(connection?.saveData) || ['slow-2g', '2g', '3g'].includes(connection?.effectiveType ?? '');
+
+      setUseMobileVideo(mobileQuery.matches || constrainedConnection);
+    };
+
+    updatePreference();
+    mobileQuery.addEventListener('change', updatePreference);
+
+    return () => {
+      mobileQuery.removeEventListener('change', updatePreference);
+    };
+  }, []);
+
+  return useMobileVideo;
+}
+
 function CinematicVideo({
   videoRefs,
   activeVideoId,
+  useMobileVideo,
 }: {
   videoRefs: React.MutableRefObject<Record<CinematicVideoId, HTMLVideoElement | null>>;
   activeVideoId: CinematicVideoId;
+  useMobileVideo: boolean;
 }) {
+  useEffect(() => {
+    const activeVideo = videoRefs.current[activeVideoId];
+
+    if (activeVideo && activeVideo.readyState === 0) {
+      activeVideo.load();
+    }
+  }, [activeVideoId, useMobileVideo, videoRefs]);
+
+  useEffect(() => {
+    const prepareVideos = () => {
+      Object.values(videoRefs.current).forEach((video) => {
+        if (!video) {
+          return;
+        }
+
+        video.load();
+
+        const playAttempt = video.play();
+        if (playAttempt) {
+          playAttempt.then(() => video.pause()).catch(() => undefined);
+        }
+      });
+    };
+
+    window.addEventListener('pointerdown', prepareVideos, { once: true, passive: true });
+    window.addEventListener('touchstart', prepareVideos, { once: true, passive: true });
+
+    return () => {
+      window.removeEventListener('pointerdown', prepareVideos);
+      window.removeEventListener('touchstart', prepareVideos);
+    };
+  }, [videoRefs]);
+
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
       {(Object.entries(cinematicVideos) as Array<[CinematicVideoId, (typeof cinematicVideos)[CinematicVideoId]]>).map(
-        ([videoId, video]) => (
-          <video
-            key={videoId}
-            ref={(node) => {
-              videoRefs.current[videoId] = node;
-            }}
-            className={`absolute inset-0 h-full w-full scale-105 object-cover saturate-[1.18] transition-opacity duration-500 ${
-              activeVideoId === videoId ? 'opacity-90' : 'opacity-0'
-            }`}
-            src={video.src}
-            aria-label={video.label}
-            muted
-            playsInline
-            preload="auto"
-          />
-        ),
+        ([videoId, video]) => {
+          const isActive = activeVideoId === videoId;
+
+          return (
+            <video
+              key={`${videoId}-${useMobileVideo ? 'mobile' : 'desktop'}`}
+              ref={(node) => {
+                videoRefs.current[videoId] = node;
+              }}
+              className={`absolute inset-0 h-full w-full scale-105 object-cover saturate-[1.18] transition-opacity duration-500 ${
+                isActive ? 'opacity-90' : 'opacity-0'
+              }`}
+              src={useMobileVideo ? video.mobileSrc : video.src}
+              aria-label={video.label}
+              muted
+              playsInline
+              preload={!useMobileVideo || isActive ? 'auto' : 'metadata'}
+            />
+          );
+        },
       )}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_22%,rgba(14,165,233,.08),transparent_36%),radial-gradient(circle_at_96%_92%,rgba(2,7,13,.76),rgba(2,7,13,.42)_16%,transparent_36%),linear-gradient(90deg,rgba(2,7,13,.28),rgba(2,7,13,.04)_45%,rgba(2,7,13,.46))]" />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,7,13,.28),rgba(2,7,13,.02)_42%,rgba(2,7,13,.40))]" />
