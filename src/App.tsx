@@ -16,16 +16,23 @@ import {
   MessageCircle,
   FileText,
   Fingerprint,
+  Globe2,
   HeartPulse,
+  Hospital,
   IdCard,
   Layers3,
   Menu,
   MonitorCog,
+  MapPin,
+  Mail,
   Pill,
+  Phone,
   Radio,
   Radar,
   ScanSearch,
+  Send,
   ServerCog,
+  ShieldCheck,
   Workflow,
   Watch,
   TestTube2,
@@ -53,6 +60,7 @@ import hospitalFilmMobile06 from '../vid/mobile/06-mobile.mp4?url';
 import hospitalFilmMobile07 from '../vid/mobile/7-mobile.mp4?url';
 import hospitalFilmMobile08 from '../vid/mobile/8-mobile.mp4?url';
 import hospitalTwinLoop from '../vid/hosp-loop.mp4?url';
+import performanceLoop from '../vid/perf-optimized.mp4?url';
 import mediscopeLogoWhite from './assets/medislogo-white.png';
 import { scenes } from './experienceData';
 import type { JourneyScene } from './experienceData';
@@ -254,6 +262,7 @@ function App() {
   const activeVideoIdRef = useRef<CinematicVideoId>('arrivalToReception');
   const [navOpen, setNavOpen] = useState(false);
   const useMobileVideo = useMobileVideoSource();
+  const initialExperienceReady = useInitialExperienceReady(useMobileVideo);
 
   useEffect(() => {
     const shell = shellRef.current;
@@ -441,6 +450,12 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (initialExperienceReady) {
+      ScrollTrigger.refresh();
+    }
+  }, [initialExperienceReady]);
+
   const currentScene = scenes[activeScene];
 
   const animateScrollTo = (targetY: number, duration = 1200, onComplete?: () => void) => {
@@ -486,6 +501,7 @@ function App() {
 
   return (
     <main ref={shellRef} className="relative min-h-screen overflow-x-hidden bg-obsidian text-white">
+      <InitialLoader isVisible={!initialExperienceReady} />
       <CinematicVideo videoRefs={videoRefs} activeVideoId={activeVideoId} useMobileVideo={useMobileVideo} />
       <TopNavigation activeScene={currentScene} navOpen={navOpen} setNavOpen={setNavOpen} />
       <SideNavigation
@@ -509,7 +525,132 @@ function App() {
           )
         ))}
       </div>
+      <CookieConsentBanner />
     </main>
+  );
+}
+
+function useInitialExperienceReady(useMobileVideo: boolean) {
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const minimumDisplay = new Promise((resolve) => window.setTimeout(resolve, 1200));
+    const safetyTimeout = new Promise((resolve) => window.setTimeout(resolve, 5200));
+    const selectedVideoSrc = (videoId: CinematicVideoId) =>
+      useMobileVideo ? cinematicVideos[videoId].mobileSrc : cinematicVideos[videoId].src;
+    const loadImage = (src: string) =>
+      new Promise<void>((resolve) => {
+        const image = new Image();
+        image.onload = () => resolve();
+        image.onerror = () => resolve();
+        image.src = src;
+      });
+    const loadVideoMetadata = (src: string) =>
+      new Promise<void>((resolve) => {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.muted = true;
+        video.playsInline = true;
+        video.onloadedmetadata = () => resolve();
+        video.onerror = () => resolve();
+        video.src = src;
+        video.load();
+      });
+
+    Promise.race([
+      Promise.all([
+        minimumDisplay,
+        loadImage(mediscopeLogoWhite),
+        loadVideoMetadata(selectedVideoSrc('arrivalToReception')),
+        loadVideoMetadata(selectedVideoSrc('receptionToPatient')),
+      ]),
+      safetyTimeout,
+    ]).then(() => {
+      if (!cancelled) {
+        setIsReady(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [useMobileVideo]);
+
+  return isReady;
+}
+
+function InitialLoader({ isVisible }: { isVisible: boolean }) {
+  if (!isVisible) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-0 z-[90] grid place-items-center bg-[#02070d] px-6 text-center">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(14,165,233,.18),transparent_38%),linear-gradient(180deg,rgba(2,7,13,.82),#02070d)]" />
+      <div className="relative w-full max-w-[420px]">
+        <img
+          src={mediscopeLogoWhite}
+          alt="Mediscope - Tecnologia que salva vidas"
+          className="mx-auto h-auto w-full max-w-[330px] object-contain"
+        />
+        <div className="mx-auto mt-8 h-1.5 w-56 overflow-hidden rounded-full bg-white/10">
+          <div className="h-full w-1/2 animate-[loaderTrack_1.1s_ease-in-out_infinite] rounded-full bg-cyan-200 shadow-[0_0_24px_rgba(103,232,249,.75)]" />
+        </div>
+        <p className="mt-5 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100/58">
+          Preparando a experiência
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function CookieConsentBanner() {
+  const [choice, setChoice] = useState<string | null>(() => {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    return window.localStorage.getItem('mediscope-cookie-consent');
+  });
+
+  const saveChoice = (value: 'accepted' | 'rejected') => {
+    window.localStorage.setItem('mediscope-cookie-consent', value);
+    setChoice(value);
+  };
+
+  if (choice) {
+    return null;
+  }
+
+  return (
+    <div className="fixed bottom-4 left-4 right-4 z-[80] mx-auto max-w-[980px] rounded-lg border border-cyan-100/18 bg-[#02070d]/94 p-4 shadow-glass backdrop-blur-2xl sm:bottom-6 sm:p-5">
+      <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
+        <div>
+          <p className="font-display text-lg font-semibold text-white">Aviso de cookies</p>
+          <p className="mt-2 text-sm leading-6 text-cyan-50/68">
+            Utilizamos cookies e tecnologias semelhantes para melhorar sua experiência de navegação, analisar o uso do
+            site e personalizar conteúdos, conforme a LGPD. Você pode aceitar ou rejeitar cookies não essenciais.
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row md:justify-end">
+          <button
+            type="button"
+            onClick={() => saveChoice('rejected')}
+            className="inline-flex h-11 items-center justify-center rounded border border-white/14 bg-white/[0.045] px-4 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+          >
+            Rejeitar
+          </button>
+          <button
+            type="button"
+            onClick={() => saveChoice('accepted')}
+            className="inline-flex h-11 items-center justify-center rounded bg-cyan-100 px-4 text-sm font-semibold text-[#03101c] transition hover:bg-white"
+          >
+            Aceitar cookies
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -518,18 +659,9 @@ function useMobileVideoSource() {
 
   useEffect(() => {
     const mobileQuery = window.matchMedia('(max-width: 767px)');
-    const connection = (navigator as Navigator & {
-      connection?: {
-        saveData?: boolean;
-        effectiveType?: string;
-      };
-    }).connection;
 
     const updatePreference = () => {
-      const constrainedConnection =
-        Boolean(connection?.saveData) || ['slow-2g', '2g', '3g'].includes(connection?.effectiveType ?? '');
-
-      setUseMobileVideo(mobileQuery.matches || constrainedConnection);
+      setUseMobileVideo(mobileQuery.matches);
     };
 
     updatePreference();
@@ -921,6 +1053,14 @@ function ScenePanel({ scene, index, isLast }: { scene: JourneyScene; index: numb
     return <ManagementIntelligenceScenePanel scene={scene} index={index} />;
   }
 
+  if (scene.id === 'command') {
+    return <GovernanceScenePanel scene={scene} index={index} />;
+  }
+
+  if (scene.id === 'cta') {
+    return <ContactScenePanel scene={scene} index={index} />;
+  }
+
   if (hasIntro) {
     return <IntroScenePanel scene={scene} index={index} />;
   }
@@ -1051,18 +1191,12 @@ function PrinciplesScenePanel({ scene, index }: { scene: JourneyScene; index: nu
       data-journey-item
       data-kind="scene"
       data-scene-index={index}
-      className="relative flex min-h-screen items-start px-4 pb-20 pt-28 sm:px-6 lg:px-10"
+      className="relative flex min-h-screen items-start px-4 pb-24 pt-28 sm:px-6 lg:px-10"
     >
-      <div className="mx-auto grid w-full max-w-[1560px] grid-cols-1 items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)_560px]">
+      <div className="mx-auto grid w-full max-w-[1560px] grid-cols-1 items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         <div className="hidden lg:block" />
 
-        <motion.article
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ amount: 0.35, once: false }}
-          transition={{ duration: 0.55, ease: 'easeOut' }}
-          className="max-w-3xl"
-        >
+        <article className="max-w-3xl">
           <div className="rounded-lg border border-white/10 bg-[#03101c]/58 p-6 shadow-glass backdrop-blur-xl sm:p-7">
             <h1 className="max-w-3xl font-display text-4xl font-semibold leading-[1.03] text-white sm:text-6xl">
               {scene.title}
@@ -1093,15 +1227,9 @@ function PrinciplesScenePanel({ scene, index }: { scene: JourneyScene; index: nu
               ))}
             </div>
           </div>
-        </motion.article>
+        </article>
 
-        <motion.aside
-          initial={{ opacity: 0, x: 28 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ amount: 0.3, once: false }}
-          transition={{ duration: 0.65, ease: 'easeOut' }}
-          className="relative rounded-lg border border-cyan-100/12 bg-[#03101c]/48 p-5 shadow-glass backdrop-blur-xl"
-        >
+        <aside className="relative rounded-lg border border-cyan-100/12 bg-[#03101c]/48 p-5 shadow-glass backdrop-blur-xl lg:col-start-2">
           <div className="absolute inset-0 rounded-lg bg-[radial-gradient(circle_at_50%_0%,rgba(19,217,196,.16),transparent_38%)]" />
           <div className="relative">
             <p className="mb-5 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-100/60">
@@ -1164,7 +1292,7 @@ function PrinciplesScenePanel({ scene, index }: { scene: JourneyScene; index: nu
               })}
             </div>
           </div>
-        </motion.aside>
+        </aside>
       </div>
     </section>
   );
@@ -1192,13 +1320,7 @@ function PatientAppScenePanel({ scene, index }: { scene: JourneyScene; index: nu
       <div className="mx-auto grid w-full max-w-[1560px] grid-cols-1 items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         <div className="hidden lg:block" />
 
-        <motion.article
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ amount: 0.35, once: false }}
-          transition={{ duration: 0.55, ease: 'easeOut' }}
-          className="grid gap-6 xl:grid-cols-[minmax(0,0.82fr)_minmax(520px,1fr)]"
-        >
+        <article className="grid gap-6">
           <div className="rounded-lg border border-white/10 bg-[#03101c]/58 p-6 shadow-glass backdrop-blur-xl sm:p-7">
             <h1 className="max-w-3xl font-display text-4xl font-semibold leading-[1.03] text-white sm:text-6xl">
               {scene.title}
@@ -1241,7 +1363,7 @@ function PatientAppScenePanel({ scene, index }: { scene: JourneyScene; index: nu
               );
             })}
           </div>
-        </motion.article>
+        </article>
       </div>
     </section>
   );
@@ -1275,16 +1397,10 @@ function ClinicalScenePanel({ scene, index }: { scene: JourneyScene; index: numb
       data-scene-index={index}
       className="relative flex min-h-screen items-start px-4 pb-20 pt-28 sm:px-6 lg:px-10"
     >
-      <div className="mx-auto grid w-full max-w-[1560px] grid-cols-1 items-start gap-6 lg:grid-cols-[280px_minmax(0,0.92fr)_minmax(520px,0.95fr)]">
+      <div className="mx-auto grid w-full max-w-[1560px] grid-cols-1 items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         <div className="hidden lg:block" />
 
-        <motion.article
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ amount: 0.35, once: false }}
-          transition={{ duration: 0.55, ease: 'easeOut' }}
-          className="rounded-lg border border-white/10 bg-[#03101c]/58 p-6 shadow-glass backdrop-blur-xl sm:p-7"
-        >
+        <article className="rounded-lg border border-white/10 bg-[#03101c]/58 p-6 shadow-glass backdrop-blur-xl sm:p-7">
           <h1 className="max-w-3xl font-display text-4xl font-semibold leading-[1.03] text-white sm:text-6xl">
             {scene.title}
           </h1>
@@ -1326,15 +1442,9 @@ function ClinicalScenePanel({ scene, index }: { scene: JourneyScene; index: numb
               })}
             </div>
           </div>
-        </motion.article>
+        </article>
 
-        <motion.aside
-          initial={{ opacity: 0, scale: 0.96 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ amount: 0.3, once: false }}
-          transition={{ duration: 0.65, ease: 'easeOut' }}
-          className="space-y-4"
-        >
+        <aside className="space-y-4 lg:col-start-2">
           <div className="rounded-lg border border-cyan-100/12 bg-[#03101c]/56 p-5 shadow-glass backdrop-blur-xl">
             <div className="mb-4 flex items-center gap-3">
               <div className="grid size-10 shrink-0 place-items-center rounded border border-cyan-300/24 bg-cyan-300/10 text-cyan-200">
@@ -1434,7 +1544,7 @@ function ClinicalScenePanel({ scene, index }: { scene: JourneyScene; index: numb
             </div>
             </div>
           </div>
-        </motion.aside>
+        </aside>
       </div>
     </section>
   );
@@ -1468,16 +1578,10 @@ function ArtificialIntelligenceScenePanel({ scene, index }: { scene: JourneyScen
       data-scene-index={index}
       className="relative flex min-h-screen items-start px-4 pb-20 pt-28 sm:px-6 lg:px-10"
     >
-      <div className="mx-auto grid w-full max-w-[1560px] grid-cols-1 items-start gap-6 lg:grid-cols-[280px_minmax(0,0.9fr)_minmax(560px,1fr)]">
+      <div className="mx-auto grid w-full max-w-[1560px] grid-cols-1 items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         <div className="hidden lg:block" />
 
-        <motion.article
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ amount: 0.35, once: false }}
-          transition={{ duration: 0.55, ease: 'easeOut' }}
-          className="space-y-5"
-        >
+        <article className="space-y-5">
           <div className="rounded-lg border border-white/10 bg-[#03101c]/60 p-6 shadow-glass backdrop-blur-xl sm:p-7">
             <div className="mb-5 grid size-12 place-items-center rounded border border-cyan-200/24 bg-cyan-300/10 text-cyan-100 shadow-[0_0_22px_rgba(34,211,238,.18)]">
               <BrainCircuit className="size-6" />
@@ -1527,15 +1631,9 @@ function ArtificialIntelligenceScenePanel({ scene, index }: { scene: JourneyScen
               ))}
             </div>
           </div>
-        </motion.article>
+        </article>
 
-        <motion.aside
-          initial={{ opacity: 0, x: 28 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ amount: 0.3, once: false }}
-          transition={{ duration: 0.65, ease: 'easeOut' }}
-          className="grid gap-4"
-        >
+        <aside className="grid gap-4 lg:col-start-2">
           <div className="rounded-lg border border-red-300/16 bg-[#03101c]/58 p-5 shadow-glass backdrop-blur-xl">
             <div className="mb-4 flex items-center gap-3">
               <div className="grid size-10 shrink-0 place-items-center rounded border border-red-300/24 bg-red-300/10 text-red-200">
@@ -1615,7 +1713,7 @@ function ArtificialIntelligenceScenePanel({ scene, index }: { scene: JourneyScen
               )}
             </div>
           )}
-        </motion.aside>
+        </aside>
       </div>
     </section>
   );
@@ -1746,18 +1844,12 @@ function ManagementIntelligenceScenePanel({ scene, index }: { scene: JourneyScen
       data-journey-item
       data-kind="scene"
       data-scene-index={index}
-      className="relative flex min-h-screen items-start px-4 pb-20 pt-28 sm:px-6 lg:px-10"
+      className="relative flex min-h-screen items-start px-4 pb-24 pt-28 sm:px-6 lg:px-10"
     >
-      <div className="mx-auto grid w-full max-w-[1560px] grid-cols-1 items-start gap-6 lg:grid-cols-[280px_minmax(0,0.86fr)_minmax(590px,1fr)]">
+      <div className="mx-auto grid w-full max-w-[1560px] grid-cols-1 items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         <div className="hidden lg:block" />
 
-        <motion.article
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ amount: 0.35, once: false }}
-          transition={{ duration: 0.55, ease: 'easeOut' }}
-          className="space-y-5"
-        >
+        <article className="space-y-5">
           <div className="rounded-lg border border-white/10 bg-[#03101c]/60 p-6 shadow-glass backdrop-blur-xl sm:p-7">
             <h1 className="max-w-3xl font-display text-4xl font-semibold leading-[1.03] text-white sm:text-6xl">
               {scene.title}
@@ -1826,18 +1918,38 @@ function ManagementIntelligenceScenePanel({ scene, index }: { scene: JourneyScen
               </div>
             </div>
           )}
-        </motion.article>
 
-        <motion.aside
-          initial={{ opacity: 0, x: 28 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ amount: 0.3, once: false }}
-          transition={{ duration: 0.65, ease: 'easeOut' }}
-          className="grid gap-4"
-        >
+          <div className="overflow-hidden rounded-lg border border-cyan-200/16 bg-[#03101c]/56 shadow-glass backdrop-blur-xl">
+            <div className="p-5">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="grid size-10 shrink-0 place-items-center rounded border border-cyan-200/24 bg-cyan-300/10 text-cyan-100">
+                  <Activity className="size-5" />
+                </div>
+                <div>
+                  <p className="font-display text-lg font-semibold text-white">Performance em tempo real</p>
+                  <p className="mt-1 text-sm leading-5 text-cyan-50/58">
+                    Dispositivos, departamentos e pessoas acompanhados em uma única visão.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <video
+              src={performanceLoop}
+              className="aspect-video w-full border-t border-white/10 object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              onLoadedMetadata={() => ScrollTrigger.refresh()}
+            />
+          </div>
+        </article>
+
+        <aside className="grid gap-4 lg:col-start-2">
           {custodyTimeline}
 
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             {sideBlocks.slice(0, 3).map((block) => (
               <div key={block.title} className="rounded-lg border border-white/10 bg-[#03101c]/54 p-4 shadow-glass backdrop-blur-xl">
                 <p className="font-display text-base font-semibold text-white">{block.title}</p>
@@ -1850,7 +1962,7 @@ function ManagementIntelligenceScenePanel({ scene, index }: { scene: JourneyScen
             ))}
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             {sideBlocks.slice(3).map((block) => {
               const listIndex = block.parts.findIndex((part) => part.includes(';'));
               const listItems =
@@ -1899,7 +2011,7 @@ function ManagementIntelligenceScenePanel({ scene, index }: { scene: JourneyScen
               </p>
             )}
           </div>
-        </motion.aside>
+        </aside>
       </div>
     </section>
   );
@@ -1943,16 +2055,10 @@ function ConnectivityScenePanel({ scene, index }: { scene: JourneyScene; index: 
       data-scene-index={index}
       className="relative flex min-h-screen items-start px-4 pb-20 pt-28 sm:px-6 lg:px-10"
     >
-      <div className="mx-auto grid w-full max-w-[1560px] grid-cols-1 items-start gap-6 lg:grid-cols-[280px_minmax(0,0.82fr)_minmax(580px,1fr)]">
+      <div className="mx-auto grid w-full max-w-[1560px] grid-cols-1 items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         <div className="hidden lg:block" />
 
-        <motion.article
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ amount: 0.35, once: false }}
-          transition={{ duration: 0.55, ease: 'easeOut' }}
-          className="rounded-lg border border-white/10 bg-[#03101c]/58 p-6 shadow-glass backdrop-blur-xl sm:p-7"
-        >
+        <article className="rounded-lg border border-white/10 bg-[#03101c]/58 p-6 shadow-glass backdrop-blur-xl sm:p-7">
           <h1 className="max-w-3xl font-display text-4xl font-semibold leading-[1.03] text-white sm:text-6xl">
             {scene.title}
           </h1>
@@ -2007,9 +2113,9 @@ function ConnectivityScenePanel({ scene, index }: { scene: JourneyScene; index: 
               “{closingStatement}”
             </p>
           )}
-        </motion.article>
+        </article>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 lg:col-start-2">
           {capabilities.map((capability, capabilityIndex) => {
             const Icon = capability.icon;
 
@@ -2081,6 +2187,344 @@ function ConnectivityScenePanel({ scene, index }: { scene: JourneyScene; index: 
             </motion.div>
           )}
         </div>
+      </div>
+    </section>
+  );
+}
+
+function GovernanceScenePanel({ scene, index }: { scene: JourneyScene; index: number }) {
+  const blocks = (scene.introParagraphs ?? []).map((block) => {
+    const [title, ...parts] = block.split('|');
+    return { title, parts };
+  });
+  const decisionBlock = blocks.find((block) => block.title === 'Decisão em Tempo Real');
+  const audienceBlocks = blocks.filter((block) => ['Secretarias Municipais de Saúde', 'Hospitais'].includes(block.title));
+  const intelligenceBlocks = blocks.filter(
+    (block) => !['Decisão em Tempo Real', 'Secretarias Municipais de Saúde', 'Hospitais'].includes(block.title),
+  );
+  const intelligenceIcons = [DatabaseZap, MonitorCog, BrainCircuit, Activity];
+
+  const renderParts = (parts: string[], compact = false) => (
+    <div className={compact ? 'mt-3 grid gap-2' : 'mt-4 space-y-3 text-sm leading-6 text-cyan-50/68'}>
+      {parts.map((part, partIndex) => {
+        const listItems = part
+          .split(';')
+          .map((item) => item.trim())
+          .filter(Boolean);
+        const isList = listItems.length > 1;
+
+        if (isList) {
+          return (
+            <div key={part} className={compact ? 'grid gap-2' : 'grid gap-2 sm:grid-cols-2'}>
+              {listItems.map((item) => (
+                <div
+                  key={item}
+                  className="rounded border border-white/8 bg-white/[0.035] px-3 py-2 text-xs leading-5 text-cyan-50/70"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+          );
+        }
+
+        const isLead = partIndex === 0 && !compact;
+
+        return (
+          <p key={part} className={isLead ? 'font-semibold text-cyan-50/86' : undefined}>
+            {part}
+          </p>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <section
+      id={scene.id}
+      data-journey-item
+      data-kind="scene"
+      data-scene-index={index}
+      className="relative flex min-h-screen items-start px-4 pb-20 pt-28 sm:px-6 lg:px-10"
+    >
+      <div className="mx-auto grid w-full max-w-[1560px] grid-cols-1 items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="hidden lg:block" />
+
+        <article className="space-y-5">
+          <div className="rounded-lg border border-white/10 bg-[#03101c]/60 p-6 shadow-glass backdrop-blur-xl sm:p-7">
+            <div className="mb-5 grid size-12 place-items-center rounded border border-sky-300/24 bg-sky-300/10 text-sky-200">
+              <MonitorCog className="size-6" />
+            </div>
+
+            <h1 className="max-w-3xl font-display text-4xl font-semibold leading-[1.03] text-white sm:text-6xl">
+              {scene.title}
+            </h1>
+
+            {scene.kicker && (
+              <p className="mt-4 max-w-2xl font-display text-2xl font-semibold leading-snug text-cyan-100/90">
+                {scene.kicker}
+              </p>
+            )}
+
+            <div className="mt-6 space-y-4 text-base leading-8 text-cyan-50/76">
+              <p>{scene.body}</p>
+              {scene.points.map((point, pointIndex) =>
+                pointIndex < 2 ? (
+                  <p key={point} className="font-display text-xl font-semibold leading-8 text-white">
+                    {point}
+                  </p>
+                ) : (
+                  <p key={point}>{point}</p>
+                ),
+              )}
+            </div>
+          </div>
+
+          {decisionBlock && (
+            <div className="rounded-lg border border-cyan-200/16 bg-[#03101c]/54 p-5 shadow-glass backdrop-blur-xl">
+              <p className="font-display text-lg font-semibold text-white">{decisionBlock.title}</p>
+              {renderParts(decisionBlock.parts)}
+            </div>
+          )}
+
+          {scene.closing?.[0] && (
+            <p className="rounded-lg border border-emerald-300/18 bg-emerald-300/[0.065] p-5 font-display text-xl font-semibold leading-8 text-emerald-100 shadow-glass backdrop-blur-xl">
+              “{scene.closing[0]}”
+            </p>
+          )}
+        </article>
+
+        <aside className="grid gap-4 lg:col-start-2">
+          <div className="grid gap-4 md:grid-cols-2">
+            {audienceBlocks.map((block) => {
+              const Icon = block.title === 'Hospitais' ? Hospital : ShieldCheck;
+
+              return (
+                <div key={block.title} className="rounded-lg border border-white/10 bg-[#03101c]/58 p-5 shadow-glass backdrop-blur-xl">
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="grid size-10 shrink-0 place-items-center rounded border border-sky-300/24 bg-sky-300/10 text-sky-200">
+                      <Icon className="size-5" />
+                    </div>
+                    <p className="font-display text-lg font-semibold leading-6 text-white">{block.title}</p>
+                  </div>
+                  {renderParts(block.parts, true)}
+                </div>
+              );
+            })}
+          </div>
+
+          {intelligenceBlocks.map((block, blockIndex) => {
+            const Icon = intelligenceIcons[blockIndex] ?? MonitorCog;
+
+            return (
+              <div key={block.title} className="rounded-lg border border-white/10 bg-[#03101c]/54 p-5 shadow-glass backdrop-blur-xl">
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="grid size-10 shrink-0 place-items-center rounded border border-cyan-200/24 bg-cyan-300/10 text-cyan-100">
+                    <Icon className="size-5" />
+                  </div>
+                  <p className="font-display text-lg font-semibold text-white">{block.title}</p>
+                </div>
+                {renderParts(block.parts)}
+              </div>
+            );
+          })}
+
+          {scene.closing?.[1] && (
+            <div className="rounded-lg border border-sky-300/18 bg-sky-300/[0.06] p-5 shadow-glass backdrop-blur-xl">
+              <div className="grid gap-3">
+                {scene.closing[1]
+                  .split(';')
+                  .map((step) => step.trim())
+                  .filter(Boolean)
+                  .map((step, stepIndex, steps) => (
+                    <div key={step} className="grid gap-3">
+                      <div className="rounded border border-cyan-200/18 bg-cyan-300/[0.06] px-4 py-3">
+                        <p className="font-display text-lg font-semibold leading-7 text-cyan-100">{step}</p>
+                      </div>
+                      {stepIndex < steps.length - 1 && (
+                        <div className="flex justify-center text-2xl font-semibold leading-none text-cyan-100/70">↓</div>
+                      )}
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+        </aside>
+      </div>
+    </section>
+  );
+}
+
+function ContactScenePanel({ scene, index }: { scene: JourneyScene; index: number }) {
+  const [formData, setFormData] = useState({
+    nome: '',
+    instituicao: '',
+    cargo: '',
+    telefone: '',
+    email: '',
+    cidade: '',
+    mensagem: '',
+  });
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+
+  const updateField = (field: keyof typeof formData, value: string) => {
+    setFormData((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setStatus('sending');
+
+    try {
+      const response = await fetch('https://formsubmit.co/ajax/anderson@mediscope.com.br', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          _subject: 'Solicitação de demonstração - Mediscope',
+          Nome: formData.nome,
+          Instituição: formData.instituicao,
+          Cargo: formData.cargo,
+          Telefone: formData.telefone,
+          Email: formData.email,
+          Cidade: formData.cidade,
+          Mensagem: formData.mensagem,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha no envio');
+      }
+
+      setStatus('sent');
+      setFormData({
+        nome: '',
+        instituicao: '',
+        cargo: '',
+        telefone: '',
+        email: '',
+        cidade: '',
+        mensagem: '',
+      });
+    } catch {
+      setStatus('error');
+    }
+  };
+
+  const fieldClass =
+    'h-12 w-full rounded border border-white/10 bg-white/[0.055] px-3 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-cyan-200/45 focus:bg-white/[0.075]';
+  const labelClass = 'mb-1.5 block text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100/52';
+  const contactItems = [
+    { label: 'Comercial', value: '11 91081-5777', href: 'tel:+5511910815777', icon: Phone },
+    { label: 'E-mail', value: 'comercial@mediscope.com.br', href: 'mailto:comercial@mediscope.com.br', icon: Mail },
+    { label: 'Website', value: 'www.mediscope.com.br', href: 'https://www.mediscope.com.br', icon: Globe2 },
+    { label: 'Endereço', value: 'Rua Djalma Monteiro, 460, Várzea, Teresópolis - RJ', icon: MapPin },
+  ];
+
+  return (
+    <section
+      id={scene.id}
+      data-journey-item
+      data-kind="scene"
+      data-scene-index={index}
+      className="relative flex min-h-screen items-start px-4 pb-20 pt-28 sm:px-6 lg:px-10"
+    >
+      <div className="mx-auto grid w-full max-w-[1560px] grid-cols-1 items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="hidden lg:block" />
+
+        <article className="space-y-6">
+          <div className="rounded-lg border border-white/10 bg-[#03101c]/60 p-6 shadow-glass backdrop-blur-xl sm:p-7">
+            <h1 className="max-w-3xl font-display text-4xl font-semibold leading-[1.03] text-white sm:text-6xl">
+              {scene.title}
+            </h1>
+            <div className="mt-6 space-y-4 text-base leading-8 text-cyan-50/76">
+              <p>{scene.body}</p>
+              {scene.points.map((point) => (
+                <p key={point}>{point}</p>
+              ))}
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="rounded-lg border border-cyan-200/16 bg-[#03101c]/58 p-5 shadow-glass backdrop-blur-xl sm:p-6">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className={labelClass}>Nome</span>
+                <input required className={fieldClass} value={formData.nome} onChange={(event) => updateField('nome', event.target.value)} />
+              </label>
+              <label className="block">
+                <span className={labelClass}>Instituição</span>
+                <input required className={fieldClass} value={formData.instituicao} onChange={(event) => updateField('instituicao', event.target.value)} />
+              </label>
+              <label className="block">
+                <span className={labelClass}>Cargo</span>
+                <input className={fieldClass} value={formData.cargo} onChange={(event) => updateField('cargo', event.target.value)} />
+              </label>
+              <label className="block">
+                <span className={labelClass}>Telefone</span>
+                <input required className={fieldClass} value={formData.telefone} onChange={(event) => updateField('telefone', event.target.value)} />
+              </label>
+              <label className="block">
+                <span className={labelClass}>E-mail</span>
+                <input required type="email" className={fieldClass} value={formData.email} onChange={(event) => updateField('email', event.target.value)} />
+              </label>
+              <label className="block">
+                <span className={labelClass}>Cidade</span>
+                <input className={fieldClass} value={formData.cidade} onChange={(event) => updateField('cidade', event.target.value)} />
+              </label>
+            </div>
+
+            <label className="mt-4 block">
+              <span className={labelClass}>Mensagem</span>
+              <textarea
+                className="min-h-[132px] w-full resize-y rounded border border-white/10 bg-white/[0.055] px-3 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-white/28 focus:border-cyan-200/45 focus:bg-white/[0.075]"
+                value={formData.mensagem}
+                onChange={(event) => updateField('mensagem', event.target.value)}
+              />
+            </label>
+
+            <button
+              type="submit"
+              disabled={status === 'sending'}
+              className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded bg-cyan-100 px-5 text-sm font-semibold text-[#03101c] transition hover:bg-white disabled:cursor-wait disabled:opacity-70 sm:w-auto"
+            >
+              <Send className="size-4" />
+              {status === 'sending' ? 'Enviando...' : 'Solicitar Demonstração'}
+            </button>
+
+            {status === 'sent' && <p className="mt-4 text-sm font-medium text-emerald-300">Solicitação enviada. Em breve entraremos em contato.</p>}
+            {status === 'error' && <p className="mt-4 text-sm font-medium text-red-300">Não foi possível enviar agora. Tente novamente em instantes.</p>}
+          </form>
+        </article>
+
+        <aside className="rounded-lg border border-white/10 bg-[#03101c]/60 p-6 shadow-glass backdrop-blur-xl sm:p-7 lg:col-start-2">
+          <p className="font-display text-3xl font-semibold text-white">Contato</p>
+          <div className="mt-6 grid gap-4">
+            {contactItems.map((item) => {
+              const Icon = item.icon;
+              const content = (
+                <div className="flex gap-3 rounded border border-white/8 bg-white/[0.035] p-4 transition hover:border-cyan-100/24 hover:bg-white/[0.055]">
+                  <div className="grid size-10 shrink-0 place-items-center rounded border border-cyan-200/24 bg-cyan-300/10 text-cyan-100">
+                    <Icon className="size-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-100/50">{item.label}</p>
+                    <p className="mt-1 text-sm font-semibold leading-6 text-cyan-50/86">{item.value}</p>
+                  </div>
+                </div>
+              );
+
+              return item.href ? (
+                <a key={item.label} href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer">
+                  {content}
+                </a>
+              ) : (
+                <div key={item.label}>{content}</div>
+              );
+            })}
+          </div>
+        </aside>
       </div>
     </section>
   );

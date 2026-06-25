@@ -116,6 +116,20 @@ a {
   }
 }
 
+@keyframes loaderTrack {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  50% {
+    transform: translateX(60%);
+  }
+
+  100% {
+    transform: translateX(240%);
+  }
+}
+
 @keyframes aiPulse {
   0%,
   100% {
