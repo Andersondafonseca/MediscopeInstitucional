@@ -14,13 +14,13 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const output = resolve(root, 'dist/banner');
 const bundleUrl = 'https://d2ol7oe51mr4n9.cloudfront.net/user_3IqOaaNu4mtsp2EPjuknEeNjvbj/8b027da1-0ba4-479f-9418-bc5644995cc1.json';
 const expectedSha256 = '4c5fe951dfad193221da808570b954fb4f354bb8a53093de78be16d2878c52c4';
-// Anderson's 1.mp4, supplied on 2026-09-23. The upload mirror remuxes the
-// container only; decoded video frames and encoded audio were verified equal.
+// Anderson's revised 1(1).mp4, supplied on 2026-09-23. The mirror is
+// byte-identical to the uploaded original (SHA-256 verified).
 // A future public/banner/1.mp4 takes precedence over this build-time mirror.
 const approvedVideo = Object.freeze({
-  url: 'https://d2ol7oe51mr4n9.cloudfront.net/user_3IqOaaNu4mtsp2EPjuknEeNjvbj/35a655af-0249-42c4-9707-e8cb33e0fddf.mp4',
-  sha256: 'e33b6abeb8f68849f9cba4506fd0c29775d4360b1a8c88076f2c34361d2f0a0e',
-  bytes: 6187715,
+  url: 'https://d2ol7oe51mr4n9.cloudfront.net/user_3IqOaaNu4mtsp2EPjuknEeNjvbj/3f5da491-47b4-41ab-864a-615f1fc92b3b.mp4',
+  sha256: 'a37fe32ce3d9fb12a78118a76b73a4b9eca629ac20743047bac3d87e322c297d',
+  bytes: 38366743,
 });
 const required = new Set([
   'vendor/mindar/mindar-image-three.prod.js',
@@ -98,12 +98,20 @@ if (!localVideoPresent) {
 const publishedVideo = await readFile(videoPath);
 const videoPresent = publishedVideo.length > 0;
 if (!videoPresent) throw new Error('Banner video is empty. Deployment aborted.');
+// Version the media request so returning visitors do not reuse the old MP4.
+const videoSha256 = createHash('sha256').update(publishedVideo).digest('hex');
+const videoUrl = `/banner/1.mp4?v=${videoSha256.slice(0, 12)}`;
+const pagePath = resolve(output, 'index.html');
+const page = await readFile(pagePath, 'utf8');
+const videoSourcePattern = /videoSrc:\s*(['"])\/banner\/1\.mp4(?:\?[^'"]*)?\1/;
+if (!videoSourcePattern.test(page)) throw new Error('Banner video URL configuration changed. Review before deployment.');
+await writeFile(pagePath, page.replace(videoSourcePattern, `videoSrc:'${videoUrl}'`));
 const marker = JSON.parse(await readFile(resolve(output, 'runtime-info.json'), 'utf8'));
 const status = {
-  application: 'Mediscope Banner AR', version: '1.0.1',
+  application: 'Mediscope Banner AR', version: '1.0.2',
   route: '/banner', videoPath: '/banner/1.mp4', videoPresent,
   videoBytes: publishedVideo.length,
-  videoSha256: createHash('sha256').update(publishedVideo).digest('hex'),
+  videoSha256, videoUrl,
   matchingPoints: marker.matchingPoints,
   trackingReference: marker.reference,
   assetBundleSha256: actual,
