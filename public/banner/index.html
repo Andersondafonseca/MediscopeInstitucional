@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#061323">
+<meta name="description" content="Aponte a câmera para o banner Mediscope e veja a saúde conectada ganhar vida.">
+<meta name="robots" content="noindex,nofollow">
+<title>Mediscope · Banner em realidade aumentada</title>
+<link rel="icon" href="/favicon-32x32.png">
+<script type="importmap">{"imports":{"three":"/banner/vendor/three/build/three.module.js","three/addons/":"/banner/vendor/three/examples/jsm/","mindar-image-three":"/banner/vendor/mindar/mindar-image-three.prod.js"}}</script>
+<style>
+:root{color-scheme:dark;--bg:#061323;--panel:#0c2033;--mint:#57e4d1;--text:#f0f6fa;--muted:#a6b8c8;--line:#8bb6cc2e;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text)}body{min-height:100svh}button,a,summary{touch-action:manipulation;-webkit-tap-highlight-color:transparent}button{font:inherit;cursor:pointer}button:disabled{opacity:.45;cursor:wait}a{color:inherit}button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var(--mint);outline-offset:5px}[hidden]{display:none!important}.welcome{position:relative;z-index:5;min-height:100svh;max-width:1080px;margin:auto;padding:calc(24px + env(safe-area-inset-top)) 26px calc(20px + env(safe-area-inset-bottom));background:radial-gradient(ellipse at 50% 40%,#10334666,transparent 62%)}.brand{display:flex;align-items:center;justify-content:space-between;gap:14px}.brand img{width:166px;max-height:54px;object-fit:contain;object-position:left}.tag{border:1px solid var(--line);border-radius:7px;padding:8px 10px;font:500 10px/1.2 ui-monospace,monospace;letter-spacing:2px;color:var(--mint)}.intro{max-width:460px;margin:36px auto 28px;text-align:center}.eyebrow{display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:1.2px;font-size:9px;line-height:1.7;color:var(--mint)}.dot{display:inline-block;width:5px;height:5px;flex:none;background:var(--mint);border-radius:50%;box-shadow:0 0 12px #57e4d1aa}h1{font-size:clamp(32px,5.2vw,47px);font-weight:500;letter-spacing:-1.8px;line-height:1.12;margin:20px 0 16px}h1 span{color:var(--mint)}.lead{font-size:14px;line-height:1.7;color:var(--muted);max-width:365px;margin:0 auto 24px}.artwork{position:relative;width:220px;height:220px;margin:0 auto 25px;background:var(--panel);box-shadow:0 16px 65px #001622;border:1px solid #57e4d125;overflow:hidden}.artwork img{width:100%;height:100%;object-fit:cover;opacity:.85}.corner{position:absolute;width:21px;height:21px;border-color:var(--mint);border-style:solid;z-index:2}.tl{top:0;left:0;border-width:2px 0 0 2px}.tr{top:0;right:0;border-width:2px 2px 0 0}.bl{bottom:0;left:0;border-width:0 0 2px 2px}.br{bottom:0;right:0;border-width:0 2px 2px 0}.scan-line{position:absolute;z-index:2;left:0;right:0;height:1px;background:var(--mint);box-shadow:0 0 18px 2px #57e4d166;animation:scan 3.4s ease-in-out infinite}.artwork-caption{position:absolute;z-index:3;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 3px;background:#061323dd;font:8px ui-monospace,monospace;letter-spacing:.6px}.steps{display:flex;justify-content:center;gap:15px;margin:0 -6px 22px;color:#bfd0dd;font-size:11px}.steps b{display:block;color:var(--mint);font:10px ui-monospace,monospace;margin-bottom:6px}.button{min-height:49px;display:flex;align-items:center;justify-content:center;gap:11px;padding:13px 17px;border-radius:10px;border:1px solid var(--line);font-size:14px;font-weight:600;line-height:1.5;text-decoration:none}.primary{width:100%;background:var(--mint);color:#042126;border-color:var(--mint);box-shadow:0 5px 25px #57e4d111}.primary:hover{background:#84f5e6}.primary>span{margin-left:auto;font-size:21px;font-weight:400}.primary svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.5}.privacy{font-size:11px;line-height:1.7;color:#90a6b9;margin:14px 0 0}.notice{font-size:12px;line-height:1.6;color:#ffe0a5;padding:12px;border:1px solid #ffcd7229;border-radius:8px;background:#48381c33;text-align:left}.welcome-footer{border-top:1px solid var(--line);padding-top:19px;display:flex;justify-content:space-between;gap:12px;align-items:center;color:#839bad;font-size:9px}.welcome-footer a{text-decoration:none;font-size:12px;color:#bed1dd}.welcome-footer>span{letter-spacing:1px;font-size:8px}details{text-align:left;font-size:12px;line-height:1.6;margin-top:18px;padding:12px;border:1px solid var(--line);border-radius:10px}summary{cursor:pointer;color:var(--mint)}details input{max-width:100%;margin-top:12px}#local-file-name{display:block;overflow-wrap:anywhere;margin-top:8px}.secondary{background:transparent;color:var(--text)}#ar-view{position:fixed;inset:0;overflow:hidden;isolation:isolate;z-index:0}#ar-view>video{position:absolute;z-index:0!important}#ar-view>canvas{z-index:1!important}#ar-view>div{pointer-events:none}.texture-video{position:fixed;left:0;top:0;width:1px;height:1px;opacity:.001;pointer-events:none}.hud{position:fixed;inset:0;z-index:10;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between}.hud-top{padding:calc(15px + env(safe-area-inset-top)) 20px 35px;background:linear-gradient(#061323bd,transparent);display:flex;align-items:center;justify-content:space-between}.hud-brand{font-size:25px;letter-spacing:-1px;font-weight:600}.hud-brand small{font-size:10px;letter-spacing:2px;color:var(--mint);margin-left:6px}.icon-button{pointer-events:auto;width:44px;height:44px;border-radius:50%;border:1px solid #ffffff35;background:#0613238c;color:white;font-size:20px}.viewfinder{position:absolute;width:min(68vw,320px);aspect-ratio:1;top:46%;left:50%;transform:translate(-50%,-50%);opacity:.85}.viewfinder .corner{width:29px;height:29px}.hud-bottom{padding:48px 22px calc(24px + env(safe-area-inset-bottom));background:linear-gradient(transparent,#061323ed 40%);text-align:center}.status{font-size:16px;font-weight:500;margin:0 0 8px}.hint{font-size:12px;line-height:1.6;color:#c6d7df;margin:0 auto 17px;max-width:350px}.controls{display:flex;gap:9px;justify-content:center}.controls .button{pointer-events:auto;min-height:44px;font-size:12px}.glass{background:#173445b3;color:var(--text);backdrop-filter:blur(8px)}#play{pointer-events:auto;margin:12px auto 0;max-width:350px}.screen-overlay{position:fixed;inset:0;z-index:30;background:#061323ed;display:grid;place-items:center;padding:25px;backdrop-filter:blur(10px)}.overlay-card{width:min(100%,380px);text-align:center;padding:28px;background:var(--panel);border:1px solid var(--line);border-radius:18px}.overlay-card h2{font-weight:500;font-size:24px;letter-spacing:-.7px}.overlay-card p{font-size:14px;line-height:1.7;color:var(--muted);overflow-wrap:anywhere}.overlay-card .button{margin-top:20px;width:100%}.spinner{display:inline-block;width:35px;height:35px;border:2px solid #57e4d126;border-top-color:var(--mint);border-radius:50%;animation:spin .85s linear infinite}.plain-link{display:block;margin-top:20px;font-size:13px;color:var(--muted)}.no-js{position:fixed;bottom:0;left:0;right:0;z-index:50;padding:20px;background:#552e18;color:white;text-align:center}@keyframes scan{0%,100%{top:15%;opacity:.3}50%{top:85%;opacity:1}}@keyframes spin{to{transform:rotate(360deg)}}@media(min-width:750px){.welcome{padding:32px 48px 24px}.intro{margin-top:32px}.artwork{width:240px;height:240px}.welcome-footer{margin-top:28px}}@media(max-height:720px) and (max-width:749px){.welcome{padding-top:20px}.intro{margin-top:23px}h1{font-size:32px;margin:15px 0 12px}.lead{margin-bottom:18px}.artwork{width:165px;height:165px;margin-bottom:18px}.steps{margin-bottom:17px}}@media(prefers-reduced-motion:reduce){.scan-line{animation:none;top:50%}.spinner{animation-duration:2s}}
+</style>
+</head>
+<body>
+<div id="ar-view" aria-label="Câmera em realidade aumentada"></div>
+<main id="welcome" class="welcome">
+<header class="brand"><img src="/banner/logo.png" alt="Mediscope" width="166" height="54"><span class="tag">WEB AR</span></header>
+<section class="intro" aria-labelledby="page-title">
+<div class="eyebrow"><span class="dot"></span> UMA NOVA FORMA DE ENXERGAR A SAÚDE</div>
+<h1 id="page-title">O futuro da saúde.<br><span>Além do papel.</span></h1>
+<p class="lead">Aponte a câmera para a imagem do hospital no nosso banner. Veja a experiência ganhar vida.</p>
+<div class="artwork" aria-hidden="true"><img src="/banner/target.jpg" width="512" height="512" alt=""><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span><div class="scan-line"></div><span class="artwork-caption"><span class="dot"></span> SAÚDE CONECTADA, NA PRÁTICA.</span></div>
+<div class="steps"><span><b>01</b> Ative a câmera</span><span><b>02</b> Enquadre o hospital</span><span><b>03</b> Veja acontecer</span></div>
+<button id="start" class="button primary" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h4l2-2h4l2 2h4v14H4z"/><circle cx="12" cy="12" r="4"/></svg>Ativar experiência AR<span aria-hidden="true">↗</span></button>
+<p class="privacy">Sem aplicativo. A câmera é processada neste aparelho.<br>Não gravamos nem enviamos suas imagens.</p>
+<p id="media-notice" class="notice" role="status" hidden></p>
+<p id="browser-notice" class="notice" hidden>Está no navegador de uma rede social? Abra este endereço no Safari ou no Chrome para permitir a câmera.</p>
+<details id="local-test" hidden><summary>Testar um vídeo deste aparelho</summary><p>O arquivo fica apenas neste aparelho. Este teste não publica o vídeo para os visitantes.</p><label for="video-file">Selecionar vídeo MP4</label><input id="video-file" type="file" accept="video/mp4,video/*"><span id="local-file-name"></span></details>
+</section>
+<footer class="welcome-footer"><a href="/">Conheça o Mediscope ↗</a><span>DO LEITO À GESTÃO.</span></footer>
+</main>
+<section id="hud" class="hud" hidden aria-label="Controles de realidade aumentada">
+<header class="hud-top"><span class="hud-brand">mediscope <small>AR</small></span><button id="exit" class="icon-button" aria-label="Encerrar câmera" type="button">✕</button></header>
+<div id="viewfinder" class="viewfinder" aria-hidden="true"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span><div class="scan-line"></div></div>
+<div class="hud-bottom"><p id="status" class="status" role="status" aria-live="polite">Preparando a experiência…</p><p id="hint" class="hint">Mantenha a imagem do hospital dentro da câmera.</p><div class="controls"><button id="sound" class="button glass" type="button" aria-pressed="false" disabled>Ativar som</button><button id="replay" class="button glass" type="button" disabled>Reiniciar vídeo</button></div><button id="play" class="button primary" type="button" hidden>Toque para reproduzir o vídeo</button></div>
+</section>
+<div id="loading" class="screen-overlay" hidden role="status"><div class="overlay-card"><span class="spinner" aria-hidden="true"></span><h2>Preparando a experiência</h2><p id="loading-text">Carregando o reconhecimento da imagem…</p><button id="cancel" class="button secondary" type="button">Cancelar</button></div></div>
+<div id="error" class="screen-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="error-title"><div class="overlay-card"><span class="eyebrow">MEDISCOPE AR</span><h2 id="error-title">Vamos tentar de novo?</h2><p id="error-text"></p><button id="retry" class="button primary" type="button">Reabrir experiência</button><a class="plain-link" href="/">Voltar ao site</a></div></div>
+<video id="content-video" class="texture-video" playsinline webkit-playsinline muted loop preload="metadata" aria-hidden="true"></video>
+<noscript><div class="no-js">Ative o JavaScript no navegador para usar esta experiência.</div></noscript>
+<script type="module">
+// Isolated from the institutional site. Change only videoSrc to use another URL.
+const CONFIG = Object.freeze({videoSrc:'/banner/1.mp4',targetSrc:'/banner/target.mind',targetIndex:0,artworkWidth:1,artworkHeight:2,fit:'contain',maxPixelRatio:1.5,startupTimeoutMs:60000});
+// The tracking crop is the centered 768x768 square of the 768x1536 artwork.
+// Anchor width 1 therefore corresponds exactly to original-artwork width 1.
+function videoLayout(width,height,fit=CONFIG.fit){
+  if(!(width>0&&height>0))throw new Error('Dimensões de vídeo inválidas.');
+  const frameAspect=CONFIG.artworkWidth/CONFIG.artworkHeight,aspect=width/height;
+  if(fit==='cover'){const repeatX=Math.min(1,frameAspect/aspect),repeatY=Math.min(1,aspect/frameAspect);return {width:CONFIG.artworkWidth,height:CONFIG.artworkHeight,repeatX,repeatY,offsetX:(1-repeatX)/2,offsetY:(1-repeatY)/2};}
+  const scale=Math.min(CONFIG.artworkWidth/width,CONFIG.artworkHeight/height);
+  return {width:width*scale,height:height*scale,repeatX:1,repeatY:1,offsetX:0,offsetY:0};
+}
+const $=id=>document.getElementById(id),video=$('content-video');
+let ar=null,mesh=null,texture=null,THREE=null,targetUrl=null,localVideoUrl=null;
+let state='idle',generation=0,tracked=false,mediaReady=false,mediaFailed=false,playPending=false,hintTimer;
+$('local-test').hidden=!new URLSearchParams(location.search).has('setup');
+$('browser-notice').hidden=!/Instagram|FBAN|FBAV|Line\//i.test(navigator.userAgent);
+video.muted=true;video.src=CONFIG.videoSrc;
+function notice(text){$('media-notice').textContent=text;$('media-notice').hidden=!text;}
+function updateStatus(){
+  if(state!=='active')return;
+  $('viewfinder').hidden=tracked;
+  $('status').textContent=tracked?(mediaFailed?'Imagem reconhecida · vídeo indisponível':'Banner reconhecido'):'Aponte para a imagem do hospital';
+  $('hint').textContent=tracked?(mediaFailed?'O arquivo 1.mp4 ainda precisa ser publicado ou revisado pelo Mediscope.':'Mantenha o banner enquadrado. O vídeo acompanha a imagem.'):'Enquadre o hospital, evite reflexos e mova o celular devagar.';
+  $('sound').disabled=!mediaReady;$('replay').disabled=!mediaReady;
+}
+function updateGeometry(){
+  if(!mesh||!mediaReady||!THREE)return;
+  const fit=videoLayout(video.videoWidth,video.videoHeight);
+  mesh.geometry.dispose();mesh.geometry=new THREE.PlaneGeometry(fit.width,fit.height);
+  texture.repeat.set(fit.repeatX,fit.repeatY);texture.offset.set(fit.offsetX,fit.offsetY);
+  mesh.visible=video.readyState>=2;
+}
+function shouldPlay(){return state==='active'&&tracked&&!document.hidden&&mediaReady;}
+async function playVideo(){
+  if(!shouldPlay()||playPending)return;
+  playPending=true;
+  try{await video.play();if(!shouldPlay())video.pause();else $('play').hidden=true;}
+  catch(error){if(shouldPlay()&&error?.name!=='AbortError'){$('play').hidden=false;$('hint').textContent='Toque em reproduzir para liberar o vídeo no navegador.';}}
+  finally{playPending=false;}
+}
+video.addEventListener('loadedmetadata',()=>{mediaReady=video.videoWidth>0;mediaFailed=false;notice(localVideoUrl?'Teste local: este vídeo não foi publicado para os outros visitantes.':'');updateGeometry();updateStatus();});
+video.addEventListener('canplay',()=>{updateGeometry();void playVideo();});
+video.addEventListener('error',()=>{mediaReady=false;mediaFailed=true;if(mesh)mesh.visible=false;$('play').hidden=true;notice('O vídeo não está disponível. Você pode testar o reconhecimento da imagem; a reprodução depende da publicação do arquivo 1.mp4.');updateStatus();});
+function stopAR(){
+  tracked=false;video.pause();clearTimeout(hintTimer);
+  if(!ar)return;
+  ar.renderer?.setAnimationLoop(null);
+  try{ar.controller?.stopProcessVideo();}catch{}
+  for(const track of ar.video?.srcObject?.getTracks?.()||[])track.stop();
+  try{ar.controller?.worker?.terminate();}catch{}
+  ar.video?.remove();
+  mesh?.geometry?.dispose();mesh?.material?.dispose();texture?.dispose();
+  ar.renderer?.dispose();
+}
+function showError(text,title='Vamos tentar de novo?'){
+  state='error';generation++;stopAR();$('loading').hidden=true;$('error-title').textContent=title;$('error-text').textContent=text;$('error').hidden=false;$('retry').focus();
+}
+function cameraError(error){
+  if(error?.name==='NotAllowedError'||error?.name==='SecurityError')return 'A câmera foi bloqueada. Libere a câmera nas permissões deste site e reabra a experiência.';
+  if(error?.name==='NotFoundError'||error?.name==='OverconstrainedError')return 'Não encontramos uma câmera disponível. Abra esta página no celular.';
+  if(error?.name==='NotReadableError')return 'A câmera está ocupada. Feche outros aplicativos que estejam usando a câmera.';
+  return error?.message||'Não foi possível iniciar a câmera. Verifique as permissões e abra este endereço no Safari ou no Chrome.';
+}
+function reload(){generation++;stopAR();location.reload();}
+for(const id of ['exit','retry','cancel'])$(id).addEventListener('click',reload);
+$('play').addEventListener('click',()=>void playVideo());
+$('replay').addEventListener('click',()=>{video.currentTime=0;void playVideo();});
+$('sound').addEventListener('click',()=>{video.muted=!video.muted;$('sound').textContent=video.muted?'Ativar som':'Silenciar';$('sound').setAttribute('aria-pressed',String(!video.muted));void playVideo();});
+$('video-file').addEventListener('change',event=>{
+  const file=event.target.files?.[0];if(!file)return;
+  if(!file.type.startsWith('video/')&&!/\.mp4$/i.test(file.name)){notice('Selecione um arquivo de vídeo MP4.');return;}
+  video.pause();mediaReady=false;mediaFailed=false;
+  if(localVideoUrl)URL.revokeObjectURL(localVideoUrl);
+  localVideoUrl=URL.createObjectURL(file);video.src=localVideoUrl;video.load();$('local-file-name').textContent=file.name;notice('Teste local: este vídeo não foi publicado para os outros visitantes.');
+});
+$('start').addEventListener('click',()=>{
+  if(state!=='idle')return;
+  // Keep this inside the user gesture for iOS media permissions.
+  if(mediaReady)video.play()?.then(()=>{if(!shouldPlay())video.pause();}).catch(()=>{});
+  void startAR();
+});
+async function startAR(){
+  if(!window.isSecureContext)return showError('Abra esta experiência pelo endereço HTTPS: mediscope.com.br/banner.');
+  if(!navigator.mediaDevices?.getUserMedia)return showError('Este navegador não disponibilizou a câmera. Abra o endereço diretamente no Safari ou no Chrome do celular.');
+  state='starting';const session=++generation;$('start').disabled=true;$('loading').hidden=false;let timeout;
+  try{
+    const initialize=async()=>{
+      const [threeModule,mindarModule,response]=await Promise.all([import('three'),import('mindar-image-three'),fetch(CONFIG.targetSrc,{cache:'no-cache'})]);
+      if(!response.ok||response.headers.get('content-type')?.includes('text/html'))throw new Error('O reconhecimento da imagem não carregou. Verifique a conexão e recarregue.');
+      const bytes=await response.arrayBuffer();if(bytes.byteLength<1000)throw new Error('O arquivo de reconhecimento está incompleto.');
+      if(session!==generation)return;
+      THREE=threeModule;targetUrl=URL.createObjectURL(new Blob([bytes],{type:'application/octet-stream'}));
+      // Pin-specific adapter preserves camera errors and stops late permission
+      // responses after cancellation, instead of opening an orphaned stream.
+      class BannerAR extends mindarModule.MindARThree{
+        async _startVideo(){
+          const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
+          if(session!==generation){stream.getTracks().forEach(t=>t.stop());throw new DOMException('Cancelado','AbortError');}
+          const camera=document.createElement('video');this.video=camera;
+          camera.autoplay=true;camera.muted=true;camera.playsInline=true;camera.setAttribute('playsinline','');camera.setAttribute('webkit-playsinline','');
+          camera.style.position='absolute';camera.style.top='0';camera.style.left='0';this.container.appendChild(camera);
+          await new Promise((resolve,reject)=>{
+            const timer=setTimeout(()=>reject(new Error('A câmera não enviou imagens. Reabra a experiência.')),20000);
+            camera.addEventListener('loadedmetadata',()=>{clearTimeout(timer);camera.width=camera.videoWidth;camera.height=camera.videoHeight;resolve();},{once:true});
+            camera.addEventListener('error',()=>{clearTimeout(timer);reject(new Error('Não foi possível ler a câmera.'));},{once:true});camera.srcObject=stream;
+          });
+          if(session!==generation){stream.getTracks().forEach(t=>t.stop());throw new DOMException('Cancelado','AbortError');}
+          await camera.play();
+        }
+      }
+      ar=new BannerAR({container:$('ar-view'),imageTargetSrc:targetUrl,maxTrack:1,uiLoading:'no',uiScanning:'no',uiError:'no',filterMinCF:0.001,filterBeta:0.01,warmupTolerance:5,missTolerance:8});
+      ar.renderer.setPixelRatio(Math.min(devicePixelRatio||1,CONFIG.maxPixelRatio));ar.renderer.setClearColor(0x000000,0);ar.renderer.outputColorSpace=THREE.SRGBColorSpace;
+      const anchor=ar.addAnchor(CONFIG.targetIndex);
+      texture=new THREE.VideoTexture(video);texture.colorSpace=THREE.SRGBColorSpace;texture.minFilter=THREE.LinearFilter;texture.magFilter=THREE.LinearFilter;texture.generateMipmaps=false;
+      mesh=new THREE.Mesh(new THREE.PlaneGeometry(CONFIG.artworkWidth,CONFIG.artworkHeight),new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide,toneMapped:false}));mesh.visible=false;mesh.position.z=0.002;anchor.group.add(mesh);updateGeometry();
+      anchor.onTargetFound=()=>{if(session!==generation||document.hidden)return;tracked=true;clearTimeout(hintTimer);updateStatus();void playVideo();};
+      anchor.onTargetLost=()=>{tracked=false;video.pause();$('play').hidden=true;updateStatus();};
+      $('loading-text').textContent='Permita o acesso à câmera. Depois, aponte para o hospital.';$('welcome').hidden=true;$('hud').hidden=false;
+      await ar.start();if(session!==generation){stopAR();return;}
+      state='active';$('loading').hidden=true;updateStatus();void playVideo();
+      ar.renderer.setAnimationLoop(()=>{if(state==='active')ar.renderer.render(ar.scene,ar.camera);});
+      hintTimer=setTimeout(()=>{if(state==='active'&&!tracked)$('hint').textContent='Aproxime-se até o hospital ocupar boa parte da tela. Evite reflexos fortes e não cubra a imagem.';},18000);
+    };
+    await Promise.race([initialize(),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('A inicialização demorou mais que o esperado. Confirme a permissão da câmera e a conexão; depois reabra a experiência.')),CONFIG.startupTimeoutMs);})]);
+  }catch(error){if(session===generation)showError(cameraError(error));}finally{clearTimeout(timeout);}
+}
+window.addEventListener('pagehide',()=>{generation++;stopAR();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&(state==='active'||state==='starting'))showError('A câmera foi desligada ao sair desta tela. Toque abaixo para retomar a experiência.','Experiência pausada');});
+window.addEventListener('beforeunload',()=>{stopAR();if(targetUrl)URL.revokeObjectURL(targetUrl);if(localVideoUrl)URL.revokeObjectURL(localVideoUrl);});
+</script>
+</body>
+</html>
