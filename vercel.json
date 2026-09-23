@@ -1,11 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build && node tools/banner/build.mjs",
+  "buildCommand": "npm run build && node tools/banner/build.mjs && node tools/cartao/build.mjs",
   "rewrites": [
     { "source": "/banner", "destination": "/banner/index.html" },
     { "source": "/banner/", "destination": "/banner/index.html" },
     { "source": "/evento", "destination": "/evento/index.html" },
-    { "source": "/evento/", "destination": "/evento/index.html" }
+    { "source": "/evento/", "destination": "/evento/index.html" },
+    { "source": "/cartao", "destination": "/cartao/index.html" },
+    { "source": "/cartao/", "destination": "/cartao/index.html" }
   ],
   "headers": [
     {
@@ -34,6 +36,16 @@
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
         { "key": "Content-Security-Policy", "value": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src https://mvgfxdqdwxmspncdyoul.supabase.co; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests" }
+      ]
+    },
+    {
+      "source": "/cartao/:path*",
+      "headers": [
+        { "key": "Permissions-Policy", "value": "camera=(self), microphone=(), geolocation=()" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Cache-Control", "value": "no-cache" }
       ]
     }
   ]
