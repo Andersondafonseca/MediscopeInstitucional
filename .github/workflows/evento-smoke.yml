@@ -1,0 +1,68 @@
+name: Event form live smoke test
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/evento-smoke.yml']
+permissions: {}
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify production page and public submission endpoint
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import { randomUUID } from 'node:crypto';
+          import { appendFileSync } from 'node:fs';
+          const site = 'https://www.mediscope.com.br/evento';
+          let html = '', page;
+          for (let i = 0; i < 18; i++) {
+            page = await fetch(site + '?check=' + process.env.RUN_ID, {signal: AbortSignal.timeout(15000)});
+            html = await page.text();
+            if (page.ok && html.includes('id="lead-form"')) break;
+            await new Promise(r => setTimeout(r, 6000));
+          }
+          assert(page.ok && html.includes('id="lead-form"'), 'Form was not served at the public URL');
+          assert(html.includes('id="consent"'), 'Consent field missing');
+          const endpoint = html.match(/const API = '([^']+)'/)[1];
+          const key = html.match(/const PUBLIC_KEY = '([^']+)'/)[1];
+          const headers = {'Content-Type': 'application/json', 'apikey': key};
+          const post = async payload => {
+            const response = await fetch(endpoint, {method:'POST', headers, body:JSON.stringify({payload}), signal:AbortSignal.timeout(20000)});
+            const body = await response.json();
+            assert(response.ok, 'HTTP ' + response.status + ': ' + JSON.stringify(body));
+            return body;
+          };
+          const health = await fetch(endpoint.replace('submit_event_lead','event_lead_health'), {headers, signal:AbortSignal.timeout(15000)});
+          assert(health.ok, 'Health endpoint not available');
+          assert.equal((await health.json()).ok, true);
+          const id = randomUUID();
+          const payload = {
+            submission_id:id,
+            name:'TESTE TECNICO - SMOKE TEST',
+            email:`event-smoke-${process.env.RUN_ID}-${process.env.RUN_ATTEMPT}@example.invalid`,
+            phone:'', organization:'TESTE AUTOMATIZADO - NAO CONTATAR',
+            profile:'Tecnologia / inovação', interests:['gemeo-digital'],
+            consent:true, website:'', source:'smoke-test',
+            utm_source:'github-actions', utm_medium:'test', utm_campaign:'event-form-validation'
+          };
+          const result = await post(payload);
+          assert.equal(result.ok,true,JSON.stringify(result));
+          assert.equal(result.receipt,id);
+          const retry = await post(payload);
+          assert.equal(retry.ok,true);
+          assert.equal(retry.receipt,id);
+          assert.equal((await post({...payload,consent:false})).ok,false);
+          assert.equal((await post({...payload,website:'spam'})).ok,false);
+          assert.equal((await post({...payload,email:'',phone:''})).ok,false);
+          const privateRead = await fetch(new URL('/rest/v1/event_leads?select=id&limit=1',endpoint), {headers:{...headers,'Accept-Profile':'mediscope_marketing'},signal:AbortSignal.timeout(15000)});
+          assert(!privateRead.ok, 'Private lead data unexpectedly readable');
+          const report = {page:'PASS',public_submission:'PASS',retry:'PASS',consent:'PASS',honeypot:'PASS',required_contact:'PASS',private_read_denied:'PASS',fixture_id:id,fixture_email:payload.email};
+          console.log(JSON.stringify(report,null,2));
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY,'## Event form validation\n\n```json\n'+JSON.stringify(report,null,2)+'\n```\n\nOnly a clearly labeled synthetic fixture was written. It must be removed administratively after verification. No patient data or real attendee contact was used.\n');
+          JS
