@@ -1,9 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build && node tools/banner/build.mjs",
+  "buildCommand": "npm run build && node tools/banner/build.mjs && node tools/cartao/build.mjs",
   "rewrites": [
     { "source": "/banner", "destination": "/banner/index.html" },
-    { "source": "/banner/", "destination": "/banner/index.html" }
+    { "source": "/banner/", "destination": "/banner/index.html" },
+    { "source": "/cartao", "destination": "/cartao/index.html" },
+    { "source": "/cartao/", "destination": "/cartao/index.html" }
   ],
   "headers": [
     {
@@ -14,13 +16,18 @@
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
       ]
     },
+    { "source": "/banner", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+    { "source": "/banner/1.mp4", "headers": [{ "key": "Cache-Control", "value": "public, max-age=300" }] },
     {
-      "source": "/banner",
-      "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      "source": "/cartao/:path*",
+      "headers": [
+        { "key": "Permissions-Policy", "value": "camera=(self), microphone=(), geolocation=()" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Cache-Control", "value": "no-cache" }
+      ]
     },
-    {
-      "source": "/banner/1.mp4",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=300" }]
-    }
+    { "source": "/cartao", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+    { "source": "/cartao/anderson.vcf", "headers": [{ "key": "Content-Type", "value": "text/vcard; charset=utf-8" }] }
   ]
 }
