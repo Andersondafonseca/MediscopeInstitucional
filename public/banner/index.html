@@ -132,6 +132,10 @@ async function startAR(){
       if(!response.ok||response.headers.get('content-type')?.includes('text/html'))throw new Error('O reconhecimento da imagem não carregou. Verifique a conexão e recarregue.');
       const bytes=await response.arrayBuffer();if(bytes.byteLength<1000)throw new Error('O arquivo de reconhecimento está incompleto.');
       if(session!==generation)return;
+      const engine=window.MINDAR?.IMAGE?.tf;
+      if(!engine||!await engine.setBackend('webgl'))throw new Error('Este navegador não disponibilizou aceleração gráfica para AR. Abra no Safari ou Chrome atualizado.');
+      await engine.ready();
+      if(session!==generation)return;
       THREE=threeModule;targetUrl=URL.createObjectURL(new Blob([bytes],{type:'application/octet-stream'}));
       // Pin-specific adapter preserves camera errors and stops late permission
       // responses after cancellation, instead of opening an orphaned stream.
