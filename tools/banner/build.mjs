@@ -22,6 +22,10 @@ const approvedVideo = Object.freeze({
   sha256: 'a37fe32ce3d9fb12a78118a76b73a4b9eca629ac20743047bac3d87e322c297d',
   bytes: 38366743,
 });
+// Recover the approved byte-identical asset from the last live deployment
+// when the external mirror is unavailable or fails its integrity check.
+// BOTH sources must match the original pinned SHA-256 and byte length.
+const approvedVideoSources = [approvedVideo.url, 'https://www.mediscope.com.br/banner/1.mp4'];
 const required = new Set([
   'vendor/mindar/mindar-image-three.prod.js',
   'vendor/mindar/controller-mGt1s8dJ.js',
@@ -76,21 +80,24 @@ const localVideoPresent = await stat(videoPath).then(s => s.isFile() && s.size >
 if (!localVideoPresent) {
   let videoBytes;
   let failure;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      const response = await fetch(approvedVideo.url, { signal: AbortSignal.timeout(45000) });
-      if (!response.ok) throw new Error(`Banner video request returned HTTP ${response.status}`);
-      const downloaded = Buffer.from(await response.arrayBuffer());
-      const hash = createHash('sha256').update(downloaded).digest('hex');
-      if (downloaded.length !== approvedVideo.bytes || hash !== approvedVideo.sha256) {
-        throw new Error('Banner video integrity check failed. Deployment aborted.');
+  for (const sourceUrl of approvedVideoSources) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const response = await fetch(sourceUrl, { signal: AbortSignal.timeout(45000) });
+        if (!response.ok) throw new Error(`Banner video request returned HTTP ${response.status}`);
+        const downloaded = Buffer.from(await response.arrayBuffer());
+        const hash = createHash('sha256').update(downloaded).digest('hex');
+        if (downloaded.length !== approvedVideo.bytes || hash !== approvedVideo.sha256) {
+          throw new Error('Banner video integrity check failed. Deployment aborted.');
+        }
+        videoBytes = downloaded;
+        break;
+      } catch (error) {
+        failure = error;
+        if (attempt === 0) await new Promise(resolve => setTimeout(resolve, 1000));
       }
-      videoBytes = downloaded;
-      break;
-    } catch (error) {
-      failure = error;
-      await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
     }
+    if (videoBytes) break;
   }
   if (!videoBytes) throw failure;
   await writeFile(videoPath, videoBytes);
